@@ -3,10 +3,13 @@
 
 struct BlockInfo
 {
-	unsigned int freeSpace;
-	unsigned char *nextBlock;
-	unsigned char *prevBlock;
-	unsigned char *getMemPtr() { return (unsigned char *)(this + 1); }
+	unsigned int size;
+	bool isFree;
+	BlockInfo *next;
+	BlockInfo *prev;
+
+	unsigned char *getMemPtr();
+	void joinNext();
 };
 
 #endif // BLOCKINFO_H_INCLUDED
