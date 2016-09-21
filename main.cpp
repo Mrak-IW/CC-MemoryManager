@@ -5,7 +5,7 @@ using namespace std;
 
 int main()
 {
-
-    cout << "Hello world!" << endl;
-    return 0;
+	MemoryManager *mm = new MemoryManager(1024);
+	cout << "Hello world!" << endl;
+	return 0;
 }
