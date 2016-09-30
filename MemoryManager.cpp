@@ -33,11 +33,16 @@ MemoryManager::~MemoryManager()
 
 void MemoryManager::init()
 {
-	firstBlockInfo = (BlockInfo*) memPtr;
-	firstBlockInfo->size = bufferSize - sizeof(BlockInfo);
-	firstBlockInfo->prev = nullptr;
-	firstBlockInfo->next = nullptr;
-	firstBlockInfo->isFree = true;
+	size_t alignedMemPtr = (((size_t)memPtr + memoryAlignment - 1) / memoryAlignment) * memoryAlignment;
+
+	firstBlockInfo = (BlockInfo*) alignedMemPtr;
+
+	firstBlockInfo = new (firstBlockInfo) BlockInfo(
+		bufferSize - BlockInfo::getSize(memoryAlignment) - (alignedMemPtr - (size_t)memPtr),
+		memoryAlignment,
+		true,
+		nullptr,
+		nullptr);
 }
 
 unsigned char *MemoryManager::allocate(unsigned int size)
@@ -49,14 +54,18 @@ unsigned char *MemoryManager::allocate(unsigned int size)
 		if(block->isFree)
 		{
 			//If we have to split empty block
-			if(block->size >= size + sizeof(BlockInfo))
+			if(block->size >= size + BlockInfo::getSize(memoryAlignment))
 			{
 				//Add a new block info
-				BlockInfo *newBlockInfo = (BlockInfo *)((unsigned char *)(block + 1) + size);
-				newBlockInfo->next = block->next;
-				newBlockInfo->prev = block;
-				newBlockInfo->size = block->size - sizeof(BlockInfo) - size;
-				newBlockInfo->isFree = true;
+				BlockInfo *newBlockInfo = (BlockInfo *)((unsigned char *)block + BlockInfo::getSize(memoryAlignment) + size);
+
+				newBlockInfo = new (newBlockInfo) BlockInfo(
+					block->size - BlockInfo::getSize(memoryAlignment) - size,
+					memoryAlignment,
+					true,
+					block->next,
+					block);
+
 				block->next = newBlockInfo;
 			}
 
@@ -75,13 +84,8 @@ unsigned char *MemoryManager::allocate(unsigned int size)
 
 void MemoryManager::free(unsigned char *pointer)
 {
-	BlockInfo *block = (BlockInfo *)pointer - 1;
+	BlockInfo *block = (BlockInfo *)(pointer - BlockInfo::getSize(memoryAlignment));
 
-	/*bool valid = true;
-	if(nullptr == block->prev)
-	{
-		valid &= block == this->firstBlockInfo;
-	}*/
 	block->isFree = true;
 
 	if(nullptr != block->next && block->next->isFree)
@@ -101,7 +105,7 @@ void MemoryManager::printAllocationData()
 	{
         cout<<"BlockAddr:\t"<<block<<endl
 			<<"\tisFree:\t"<<block->isFree<<endl
-			<<"\tsize:\t"<<block->size<<" + "<<sizeof(BlockInfo)<<endl
+			<<"\tsize:\t"<<block->size<<" (data) + "<<BlockInfo::getSize(memoryAlignment)<<" (control)"<<endl
 			<<"\tprev:\t"<<block->prev<<endl
 			<<"\tnext:\t"<<block->next<<endl
 			<<endl;

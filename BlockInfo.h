@@ -1,15 +1,25 @@
 #ifndef BLOCKINFO_H_INCLUDED
 #define BLOCKINFO_H_INCLUDED
 
-struct BlockInfo
-{
-	unsigned int size;
-	bool isFree;
-	BlockInfo *next;
-	BlockInfo *prev;
+#include <stdlib.h>
 
-	unsigned char *getMemPtr();
-	void joinNext();
+class BlockInfo
+{
+	public:
+		unsigned int size;
+		size_t alignment;
+		bool isFree;
+		BlockInfo *next;
+		BlockInfo *prev;
+
+		BlockInfo(unsigned int size, int alignment, bool isFree, BlockInfo *next, BlockInfo *prev);
+
+		unsigned char *getMemPtr();
+		void joinNext();
+
+		static size_t getSize(size_t alignment);
+	private:
+		BlockInfo(){}
 };
 
 #endif // BLOCKINFO_H_INCLUDED

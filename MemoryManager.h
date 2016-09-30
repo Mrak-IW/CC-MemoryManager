@@ -2,6 +2,7 @@
 #define MEMORYMANAGER_H
 
 #include <iostream>
+#include <new>
 #include "BlockInfo.h"
 
 using namespace std;
