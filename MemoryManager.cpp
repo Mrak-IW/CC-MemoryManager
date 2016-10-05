@@ -67,11 +67,11 @@ unsigned char *MemoryManager::allocate(unsigned int size)
 					block);
 
 				block->next = newBlockInfo;
+				block->size = size;
 			}
 
 			if(block->size >= size)
 			{
-				block->size = size;
 				block->isFree = false;
 				result = block->getMemPtr();
 				break;	//Memory allocated
